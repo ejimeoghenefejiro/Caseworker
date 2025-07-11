@@ -1,27 +1,53 @@
 ﻿using Caseworker.Models;
+using Dapper;
+using System.Data;
 
 namespace Caseworker.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        public Task<bool> Exists(string username)
+        private readonly IDbConnection _connection;
+
+        public UserRepository(IDbConnection connection)
         {
-            throw new NotImplementedException();
+            _connection = connection;
+        }
+        public async Task<bool> Exists(string username)
+        {
+            string query = @"select 1 from Users where username = @Username;";
+            bool result = await _connection.ExecuteScalarAsync<bool>(query, new { Username = username });
+            return result;
         }
 
-        public Task<User> GetUserByUsername(string username)
+        public async Task<User> GetUserByUsername(string username)
         {
-            throw new NotImplementedException();
+            string query = @"select id, username from Users where username = @Username;";
+            User user = await _connection.QuerySingleOrDefaultAsync<User>(query, new
+            {
+                Username = username,
+            });
+            return user;
         }
 
-        public Task<User> GetUserWithPasswordByUsername(string username)
+        public async Task<User> GetUserWithPasswordByUsername(string username)
         {
-            throw new NotImplementedException();
+            string query = @"select id, password, username from Users where username = @Username;";
+            User user = await _connection.QuerySingleOrDefaultAsync<User>(query, new
+            {
+                Username = username,
+            });
+            return user;
         }
 
-        public Task Insert(User user, string password)
+        public async Task CreateTaskAsync(User user, string password)
         {
-            throw new NotImplementedException();
+            string query = @"insert into Users (username, password) output inserted.id values (@Username, @Password);";
+            int userId = await _connection.ExecuteScalarAsync<int>(query, new
+            {
+                user.Username,
+                Password = password
+            });
+            user.Id = userId;
         }
     }
 }

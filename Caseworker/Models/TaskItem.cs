@@ -13,5 +13,6 @@
         public DateTime DueDate { get; set; }
 
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
+        public int UserId { get; set; }
     }
 }
